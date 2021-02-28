@@ -1,5 +1,5 @@
 {
-  "name": "nextjs-tools",
+  "name": "@muzkat/nextjs-tools",
   "version": "0.0.1",
   "description": "Build tools for ExtJS - build ExtJs packages fast",
   "main": "index.js",
