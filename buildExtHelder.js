@@ -29,3 +29,17 @@ module.exports = {
         return this.vmContext;
     }
 }
+
+// todo
+// "register" all files in src/packages/testModule
+// sort based on extend and requires props
+//
+// check if mixins gets merged using cmd
+// or loaded in advance, like requires / extend
+//
+// concat
+// transpile
+// uglify
+// create prod, debug
+//
+// plus bundle option (modules)
