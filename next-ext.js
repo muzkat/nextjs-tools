@@ -24,9 +24,14 @@ module.exports = {
         vm.createContext(ctx);
         this.vmContext = ctx;
     },
+    filesRaw: [],
     getClassObjects: function (fileSource) {
+        this.filesRaw.push(fileSource);
         vm.runInNewContext(fileSource, this.vmContext);
         return this.vmContext;
+    },
+    getFilesAsBundle: function () {
+        return this.filesRaw.join('\n');
     }
 }
 
