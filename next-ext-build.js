@@ -42,20 +42,8 @@ const getDirDown = (directoryPath) => {
     return tree;
 }
 
-const buildArtefactType = 'js',
-    buildDir = 'build',
-    debugSuffix = 'debug',
-    bundleName = 'bundle'
-
-// todo move to build.json
-const buildFile = {
-    srcDir: 'src',
-    packagesDir: 'packages',
-
-}
-
-const fetchPackageDirs = () => {
-    let packagesPath = [buildFile.srcDir, buildFile.packagesDir].join('/');
+const fetchPackageDirs = (sourceDir, packagesDir) => {
+    let packagesPath = [sourceDir, packagesDir].join('/');
     let componentNames = getDirectories(packagesPath).map(i => {
         return {
             packageName: i,
@@ -80,7 +68,7 @@ const buildArtefactPaths = (packageDirNames) => {
 
 const fetchFilesFromTree = (t, basePath) => {
     t = t || {};
-    var files = [];
+    let files = [];
 
     const downDir = (objRef, path) => {
         Object.keys(objRef).map(key => {
@@ -111,33 +99,79 @@ const getFiles = (buildConfig) => {
     })
 }
 
-// PROTOTYPE
-
-// prepare build files
-let conf1 = fetchPackageDirs();
-let conf2 = buildArtefactPaths(conf1);
-//logJson('', conf2);
-let configs = getFiles(conf2)
-
 const writeToDisk = function (name, string) {
     fs.writeFileSync(name, string);
 }
 
-// create Ext like object
-helper.initExt(); // todo get context for every package
+const generateBundles = function (cfgs) {
+    cfgs.map(config => {
+        if (config.files) {
+            // generate build folder
+            if (!fs.existsSync(buildDir)) {
+                fs.mkdirSync(buildDir);
+            }
 
-// build
-configs.map(config => {
-    if (config.files) {
-        if (!fs.existsSync(buildDir)) {
-            fs.mkdirSync(buildDir);
+            // create Ext like object
+            helper.initExt(); // todo get context for every package
+            // add to framework
+            config.files.map(filePath => helper.getClassObjects(readFileSync(filePath)))
+
+            const packageName = config.packageName + '.js';
+
+            // get framework
+            let framework = helper.getExt();
+
+            log('SORTING CLASSES : ' + packageName)
+
+            framework.classArray.sort((a, b) => {
+                if (a.requires && a.requires.indexOf(b.className) !== -1) {
+                    return 1
+                } else if (b.requires && b.requires.indexOf(a.className) !== -1) {
+                    return -1
+                } else return 0;
+            })
+
+            console.table(framework.classArray)
+
+            log('WRITING : ' + packageName)
+            let strings = helper.getFilesAsBundle(framework.classArray);
+            writeToDisk('build/' + packageName, strings);
         }
-        config.files.map(filePath => helper.getClassObjects(readFileSync(filePath)))
-        const strings = helper.getFilesAsBundle();
-        const packageName = config.packageName + '.js';
-        log('WRITING :' + packageName)
-        writeToDisk('build/' + packageName, strings);
-    }
-});
+    });
+}
 
-module.exports = {};
+const buildArtefactType = 'js',
+    buildDir = 'build',
+    debugSuffix = 'debug',
+    bundleName = 'bundle'
+
+
+const nextBuilder = function (buildFile) {
+    return {
+        buildFile: buildFile,
+        getPackageDirectories: fetchPackageDirs,
+        generatePathsForPackages: buildArtefactPaths,
+        fetchFiles: getFiles,
+        generateBundles: generateBundles,
+        build: function () {
+            var config = this.getPackageDirectories(buildFile.srcDir, buildFile.packagesDir);
+            config = this.generatePathsForPackages(config);
+            config = this.fetchFiles(config);
+            this.generateBundles(config);
+        }
+    };
+}
+
+module.exports = nextBuilder;
+
+
+// todo
+//
+// check if mixins gets merged using cmd
+// or loaded in advance, like requires / extend
+//
+// transpile
+// uglify
+// create prod, debug
+//
+// plus bundle option (modules)
