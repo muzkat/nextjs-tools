@@ -113,10 +113,16 @@ const generateBundles = function (cfgs) {
 
             // create Ext like object
             helper.initExt(); // todo get context for every package
+            helper.newModuleBuild();
             // add to framework
             config.files.map(filePath => helper.getClassObjects(readFileSync(filePath)))
 
             const packageName = config.packageName + '.js';
+
+            var packagePath = buildDir + '/' + config.packageName;
+            if (!fs.existsSync(packagePath)) {
+                fs.mkdirSync(packagePath);
+            }
 
             // get framework
             let moduleClassInfo = helper.getModuleClassInfo();
@@ -135,7 +141,7 @@ const generateBundles = function (cfgs) {
 
             log('WRITING : ' + packageName)
             let strings = helper.getFilesAsBundle(moduleClassInfo.classArray);
-            writeToDisk('build/' + packageName, strings);
+            writeToDisk(packagePath + '/' + packageName, strings);
         }
     });
 }

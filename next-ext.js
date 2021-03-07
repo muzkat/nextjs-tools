@@ -1,11 +1,15 @@
 const vm = require('vm');
 
-let moduleClassInformation = {
-    objs: [],
-    classMap: {},
-    classArray: [],
-    classId: 1,
+const getModuleClassInfo = function () {
+    return {
+        objs: [],
+        classMap: {},
+        classArray: [],
+        classId: 1,
+    }
 }
+
+let moduleClassInformation = {};
 
 const Ext = {
     define: function (name, config) {
@@ -36,6 +40,7 @@ const Ext = {
 module.exports = {
     Ext: Ext,
     vmContext: undefined,
+    moduleClassInfo: undefined,
     initExt: function () {
         var ctx = {Ext: this.Ext};
         vm.createContext(ctx);
@@ -44,6 +49,9 @@ module.exports = {
     filesRaw: [],
     getExt: function () {
         return this.Ext;
+    },
+    newModuleBuild: function () {
+        moduleClassInformation = getModuleClassInfo();
     },
     getModuleClassInfo: function () {
         return moduleClassInformation;
