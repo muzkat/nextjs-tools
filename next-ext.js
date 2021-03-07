@@ -52,6 +52,7 @@ module.exports = {
     },
     newModuleBuild: function () {
         moduleClassInformation = getModuleClassInfo();
+        this.filesRaw = [];
     },
     getModuleClassInfo: function () {
         return moduleClassInformation;
