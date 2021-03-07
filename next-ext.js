@@ -1,29 +1,37 @@
 const vm = require('vm');
 
-const Ext = {
+let moduleClassInformation = {
     objs: [],
     classMap: {},
     classArray: [],
     classId: 1,
+}
+
+const Ext = {
     define: function (name, config) {
-        var cls = {
+        console.log('DEFINE: ' + name);
+        let cls = {
             className: name || 'UNDEFINED',
             config: config || {}
         };
-        this.objs.push(cls);
-        this.classMap[cls.className] = cls.config;
-        this.classArray.push({
+        moduleClassInformation.objs.push(cls);
+        moduleClassInformation.classMap[cls.className] = cls.config;
+        moduleClassInformation.classArray.push({
             className: name,
             config: config,
             requires: config.requires ? config.requires : undefined,
-            id: this.classId
+            id: moduleClassInformation.classId
         })
-        this.classId++;
+        moduleClassInformation.classId++;
     },
     getClassNames: function () {
-        return this.objs.map(i => i.className);
+        return moduleClassInformation.objs.map(i => i.className);
+    },
+    create: () => {
+        return undefined;
     }
 }
+
 
 module.exports = {
     Ext: Ext,
@@ -37,9 +45,18 @@ module.exports = {
     getExt: function () {
         return this.Ext;
     },
+    getModuleClassInfo: function () {
+        return moduleClassInformation;
+    },
     getClassObjects: function (fileSource) {
         this.filesRaw.push(fileSource);
-        vm.runInNewContext(fileSource, this.vmContext);
+        try {
+            vm.runInNewContext(fileSource, this.vmContext);
+        } catch (e) {
+            console.log(e)
+            this.initExt();
+            console.log('ERROR in File : ' + fileSource);
+        }
         return this.vmContext;
     },
     getFilesAsBundle: function (classNamesArray) {

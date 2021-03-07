@@ -7,5 +7,7 @@ Ext.define('testModule.Main', {
     initComponent: function () {
         this.x = Ext.create('testModule.x');
         this.callParent(arguments);
-    }
+    },
+
+    foo: Ext.create()
 });

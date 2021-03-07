@@ -119,11 +119,11 @@ const generateBundles = function (cfgs) {
             const packageName = config.packageName + '.js';
 
             // get framework
-            let framework = helper.getExt();
+            let moduleClassInfo = helper.getModuleClassInfo();
 
             log('SORTING CLASSES : ' + packageName)
 
-            framework.classArray.sort((a, b) => {
+            moduleClassInfo.classArray.sort((a, b) => {
                 if (a.requires && a.requires.indexOf(b.className) !== -1) {
                     return 1
                 } else if (b.requires && b.requires.indexOf(a.className) !== -1) {
@@ -131,10 +131,10 @@ const generateBundles = function (cfgs) {
                 } else return 0;
             })
 
-            console.table(framework.classArray)
+            console.table(moduleClassInfo.classArray)
 
             log('WRITING : ' + packageName)
-            let strings = helper.getFilesAsBundle(framework.classArray);
+            let strings = helper.getFilesAsBundle(moduleClassInfo.classArray);
             writeToDisk('build/' + packageName, strings);
         }
     });
