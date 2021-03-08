@@ -1,4 +1,5 @@
-const vm = require('vm');
+const vm = require('vm'),
+    log = require('./log').log;
 
 const getModuleClassInfo = function () {
     return {
@@ -13,7 +14,7 @@ let moduleClassInformation = {};
 
 const Ext = {
     define: function (name, config) {
-        console.log('DEFINE: ' + name);
+        log('DEFINE: ' + name);
         let cls = {
             className: name || 'UNDEFINED',
             config: config || {}

@@ -1,15 +1,7 @@
-const {readdirSync} = require('fs'),
-    {readFileSync} = require('fs'),
-    fs = require('fs'),
-    helper = require('./next-ext');
-
-const log = function (txt) {
-    console.log(new Date().toISOString() + ' - ' + txt)
-}
-
-const logJson = (text, json, divider = ' : ') => {
-    log(text + divider + JSON.stringify(json, undefined, 4))
-}
+const {readdirSync, readFileSync, existsSync, writeFileSync, mkdirSync} = require('fs'),
+    fs = require('fs').promises,
+    helper = require('./next-ext'),
+    log = require('./log').log;
 
 const getDirectories = source =>
     readdirSync(source, {withFileTypes: true})
@@ -99,50 +91,55 @@ const getFiles = (buildConfig) => {
     })
 }
 
-const writeToDisk = function (name, string) {
-    fs.writeFileSync(name, string);
+const writeToDisk = function (path, name, string, ending = '.js') {
+    log('WRITING : ' + name)
+    writeFileSync(path + '/' + name.trim() + ending.trim(), string);
+    writeFileSync(path + '/' + name.trim() + '.' + debugSuffix + ending.trim(), string);
 }
 
-const generateBundles = function (cfgs) {
-    cfgs.map(config => {
-        if (config.files) {
-            // generate build folder
-            if (!fs.existsSync(buildDir)) {
-                fs.mkdirSync(buildDir);
-            }
+const sortClasses = (classArray) => {
+    log('SORTING CLASSES')
 
-            // create Ext like object
+    classArray.sort((a, b) => {
+        if (a.requires && a.requires.indexOf(b.className) !== -1) {
+            return 1
+        } else if (b.requires && b.requires.indexOf(a.className) !== -1) {
+            return -1
+        } else return 0;
+    })
+
+    console.table(classArray);
+    return classArray;
+}
+
+const generateBundles = async function (cfgs) {
+    if (existsSync(buildDir)) {
+        await fs.rmdir(buildDir, {recursive: true})
+            .then(() => log('BUILD DIRECTORY REMOVED'));
+    }
+    mkdirSync(buildDir);
+
+    return cfgs.map(config => {
+        if (config.files) {
+            // run in Ext context
             helper.initExt(); // todo get context for every package
             helper.newModuleBuild();
             // add to framework
             config.files.map(filePath => helper.getClassObjects(readFileSync(filePath)))
 
-            const packageName = config.packageName + '.js';
-
             var packagePath = buildDir + '/' + config.packageName;
-            if (!fs.existsSync(packagePath)) {
-                fs.mkdirSync(packagePath);
+            if (!existsSync(packagePath)) {
+                mkdirSync(packagePath);
             }
-
             // get framework
             let moduleClassInfo = helper.getModuleClassInfo();
+            moduleClassInfo.classArray = sortClasses(moduleClassInfo.classArray);
 
-            log('SORTING CLASSES : ' + packageName)
-
-            moduleClassInfo.classArray.sort((a, b) => {
-                if (a.requires && a.requires.indexOf(b.className) !== -1) {
-                    return 1
-                } else if (b.requires && b.requires.indexOf(a.className) !== -1) {
-                    return -1
-                } else return 0;
-            })
-
-            console.table(moduleClassInfo.classArray)
-
-            log('WRITING : ' + packageName)
             let strings = helper.getFilesAsBundle(moduleClassInfo.classArray);
-            writeToDisk(packagePath + '/' + packageName, strings);
+            writeToDisk(packagePath, config.packageName, strings);
+            config.moduleString = strings;
         }
+        return config;
     });
 }
 
@@ -160,24 +157,34 @@ const nextBuilder = function (buildFile) {
         fetchFiles: getFiles,
         generateBundles: generateBundles,
         build: function () {
-            var config = this.getPackageDirectories(buildFile.srcDir, buildFile.packagesDir);
+            let start = new Date(),
+                buildStatus = {statusText: 'OK'};
+            let config = this.getPackageDirectories(buildFile.srcDir, buildFile.packagesDir);
             config = this.generatePathsForPackages(config);
             config = this.fetchFiles(config);
-            this.generateBundles(config);
+            this.generateBundles(config).then((configs) => {
+                if (buildFile.bundleFiles) {
+                    let bundleStringArray = configs.filter(conf => conf.moduleString).map(c => c.moduleString);
+                    writeToDisk(buildDir, 'bundle', bundleStringArray.join('\n'));
+                }
+            }).finally(() => {
+                let end = new Date();
+                let diff = end.getTime() - start.getTime();
+                log('BUILD STATUS: ' + buildStatus.statusText);
+                log('BUILD TIME  : ' + diff);
+            })
         }
     };
 }
 
 module.exports = nextBuilder;
 
-
 // todo
+//
+// add sort based in extend if within package
 //
 // check if mixins gets merged using cmd
 // or loaded in advance, like requires / extend
 //
 // transpile
 // uglify
-// create prod, debug
-//
-// plus bundle option (modules)
