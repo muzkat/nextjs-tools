@@ -1,6 +1,6 @@
 # nextjs-tools
 
-Modern and fast build tools for ExtJS - Classic framwork
+Modern and fast build tools for ExtJS - Classic framework
 
 * no java / sdk during build needed
 * no dependencies except this package
