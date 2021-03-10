@@ -1,4 +1,4 @@
-const {readdirSync, readFileSync, existsSync, writeFileSync, mkdirSync} = require('fs'),
+const {readdirSync, readFileSync, existsSync, writeFileSync, unlinkSync, mkdirSync} = require('fs'),
     fs = require('fs').promises,
     helper = require('./next-ext'),
     log = require('./log').log;
@@ -143,6 +143,19 @@ const generateBundles = async function (cfgs) {
     });
 }
 
+const deploy = function () {
+    // todo good for today...
+    let oldPath = 'build/'
+    let newPath = 'public/app'
+    let fileName = 'bundle.js'
+
+    if (existsSync(newPath)) log('DEPLOY TARGET PATH EXISTS');
+    else mkdirSync(newPath, {recursive: true});
+    if (existsSync(newPath + '/' + fileName)) unlinkSync(newPath + '/' + fileName);
+    return fs.rename(oldPath + '/' + fileName, newPath + '/' + fileName);
+}
+
+
 const buildArtefactType = 'js',
     buildDir = 'build',
     debugSuffix = 'debug',
@@ -156,13 +169,18 @@ const nextBuilder = function (buildFile) {
         generatePathsForPackages: buildArtefactPaths,
         fetchFiles: getFiles,
         generateBundles: generateBundles,
-        build: function () {
+        build: async function () {
             let start = new Date(),
                 buildStatus = {statusText: 'OK'};
             let config = this.getPackageDirectories(buildFile.srcDir, buildFile.packagesDir);
             config = this.generatePathsForPackages(config);
             config = this.fetchFiles(config);
-            this.generateBundles(config).then((configs) => {
+            if (buildFile.appDir) {
+                log('APPLICATION DIRECTORY FOUND')
+                config = config.concat(this.getAppConfig(buildFile.appDir));
+                log('APPLICATION FILES ADDED')
+            }
+            await this.generateBundles(config).then((configs) => {
                 if (buildFile.bundleFiles) {
                     let bundleStringArray = configs.filter(conf => conf.moduleString).map(c => c.moduleString);
                     writeToDisk(buildDir, 'bundle', bundleStringArray.join('\n'));
@@ -172,8 +190,17 @@ const nextBuilder = function (buildFile) {
                 let diff = end.getTime() - start.getTime();
                 log('BUILD STATUS: ' + buildStatus.statusText);
                 log('BUILD TIME  : ' + diff);
-            })
-        }
+            });
+            return true;
+        },
+        getAppConfig: function (appDir) {
+            let config = this.generatePathsForPackages([{
+                packageName: 'application',
+                packagePath: buildFile.srcDir + '/' + appDir
+            }]);
+            return this.fetchFiles(config);
+        },
+        deploy: deploy
     };
 }
 

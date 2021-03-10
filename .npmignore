@@ -1,4 +1,4 @@
 build/
 src/
+public/
 .idea/
-test.js
