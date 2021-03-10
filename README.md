@@ -28,6 +28,6 @@ let myBuilder = builder(buildFile);
 myBuilder.build();
 ```
 
-Wishes, Changes, Feedback, Questions?
+Changes, feedback, questions?
 
 Please file an issue. 
