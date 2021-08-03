@@ -1,4 +1,4 @@
-const builder = require('./next-ext-build');
+const builder = require('./next-ext-build')
 
 const buildFile = {
     srcDir: 'src',
@@ -9,11 +9,11 @@ const buildFile = {
     deployDir: 'public'
 }
 
-let myBuilder = builder(buildFile);
+const myBuilder = builder(buildFile);
 myBuilder.build()
     .then((success) => {
         if (success && buildFile.deployDir) myBuilder.deploy()
-    });
+    })
 
 /**
  produces
