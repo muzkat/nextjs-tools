@@ -114,7 +114,7 @@ const sortClasses = (classArray) => {
 
 const generateBundles = async function (cfgs) {
     if (existsSync(buildDir)) {
-        await fs.rmdir(buildDir, {recursive: true})
+        await fs.rm(buildDir, {recursive: true})
             .then(() => log('BUILD DIRECTORY REMOVED'));
     }
     mkdirSync(buildDir);
