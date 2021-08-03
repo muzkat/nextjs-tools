@@ -1,10 +1,13 @@
 {
   "name": "@muzkat/nextjs-tools",
-  "version": "0.0.8",
-  "description": "Build tools for ExtJS - build ExtJs packages fast",
+  "version": "0.0.9",
+  "description": "Build tools for ExtJS - build ExtJS packages fast",
   "main": "next-ext-build.js",
   "scripts": {
     "test": "node test.js"
+  },
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com/"
   },
   "repository": {
     "type": "git",
