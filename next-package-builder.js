@@ -5,9 +5,8 @@
  * create view
  *
  */
+
 const {mkdirSync} = require('fs'),
-    fs = require('fs').promises,
-    helper = require('./next-ext'),
     log = require('./log').log;
 
 let packageFolder = 'packages'
