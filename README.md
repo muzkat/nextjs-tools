@@ -11,6 +11,7 @@ Modern and fast build tools for ExtJS - Classic framework
 
 * build ExtJS like packages
 * build ExtJS like applications
+* create customized ExtJS packages (wip - 2021)
 
 ### Example build file (test.js)
 
