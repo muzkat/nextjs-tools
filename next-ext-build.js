@@ -1,7 +1,8 @@
 const {readdirSync, readFileSync, existsSync, writeFileSync, unlinkSync, mkdirSync} = require('fs'),
     fs = require('fs').promises,
     helper = require('./next-ext'),
-    log = require('./log').log;
+    log = require('./log').log,
+    packageBuilder = require('./next-package-builder');
 
 const getDirectories = source =>
     readdirSync(source, {withFileTypes: true})
@@ -200,7 +201,8 @@ const nextBuilder = function (buildFile) {
             }]);
             return this.fetchFiles(config);
         },
-        deploy: deploy
+        deploy: deploy,
+        createPackage: packageBuilder.createPackage
     };
 }
 

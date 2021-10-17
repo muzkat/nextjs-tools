@@ -9,9 +9,9 @@
 const {mkdirSync, writeFileSync} = require('fs'),
     log = require('./log').log;
 
-let packageFolder = 'packages',
-    packageName = 'foo',
-    viewName = 'Main';
+// let packageFolder = 'packages',
+//     packageName = 'foo',
+//     viewName = 'Main';
 
 let baseConfig = {
     extend: 'Ext.panel.Panel'
@@ -27,7 +27,7 @@ let suffix = ')';
 
 const ending = '.js';
 
-const createView = function (viewName) {
+const createView = function (viewName, packageName) {
     let componentConfig = Object.assign({}, baseConfig, customConfig);
     let className = '"' + packageName + '.' + viewName + '",';
     componentConfig.alias = 'widget.' + packageName.toLowerCase() + viewName; // add naive alias
@@ -46,20 +46,32 @@ const createPackageFolders = function (path) {
     log('PACKAGE STRUCTURE created');
 }
 
-const createPackageStructure = function () {
-    // create paths and package structure
-    let path = createPath(packageFolder, packageName);
-    createPackageFolders(path);
+const createPackageStructure = function (packageName, viewName, packageFolder) {
+    let created = false;
+    try {
+        // create paths and package structure
+        let path = createPath(packageFolder, packageName);
+        createPackageFolders(path);
 
-    // create views, right now Main.js
-    let componentString = createView(viewName);
-    console.log(componentString);
-    // write views to disk
-    writeFileSync(path + '/' + viewName.trim() + ending.trim(), componentString);
-    log('PACKAGE ' + viewName + ' created');
+        // create views, right now Main.js
+        let componentString = createView(viewName, packageName);
+        console.log(componentString);
+        // write views to disk
+        writeFileSync(path + '/' + viewName.trim() + ending.trim(), componentString);
+        created = true;
+    } catch (e) {
+        created = false
+    }
+    return created;
 }
 
-createPackageStructure()
+const packageBuilder = {
+    createPackage: function (packageName = 'foo', vieName = 'Main', folder = 'packages') {
+        return createPackageStructure(packageName, vieName, folder);
+    }
+}
+
+module.exports = packageBuilder;
 
 
 
