@@ -16,9 +16,6 @@ myBuilder.build()
         if (success && buildFile.deployDir) myBuilder.deploy()
     })
 
-// create a simple package
-myBuilder.createPackage('test', 'TestView', 'folder')
-
 /**
  produces
  build/application/application.debug.js
@@ -27,4 +24,21 @@ myBuilder.createPackage('test', 'TestView', 'folder')
  build/testModule/testModule.js
  build/bundle.debug.js
  build/bundle.js
+ */
+
+
+// create a simple package
+myBuilder.createPackage('test', 'TestView', 'folder')
+
+/**
+ * produces
+ * folder -> test -> TestView.js
+ *
+ *
+ * Ext.define("test.TestView",{
+    "extend": "Ext.panel.Panel",
+    "moduleId": null,
+    "alias": "widget.testTestView"
+})
+ *
  */
