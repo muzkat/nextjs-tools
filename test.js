@@ -10,10 +10,14 @@ const buildFile = {
 }
 
 const myBuilder = builder(buildFile);
+// build a package
 myBuilder.build()
     .then((success) => {
         if (success && buildFile.deployDir) myBuilder.deploy()
     })
+
+// create a simple package
+myBuilder.createPackage('test', 'TestView', 'folder')
 
 /**
  produces
