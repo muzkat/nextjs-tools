@@ -1,17 +1,5 @@
-/**
- * TODOs
- *
- * create package structure -> packages -> foo
- * create view -> Main.js
- *
- */
-
 const {mkdirSync, writeFileSync} = require('fs'),
     log = require('./log').log;
-
-// let packageFolder = 'packages',
-//     packageName = 'foo',
-//     viewName = 'Main';
 
 let baseConfig = {
     extend: 'Ext.panel.Panel'
