@@ -30,6 +30,7 @@ const ending = '.js';
 const createView = function (viewName) {
     let componentConfig = Object.assign({}, baseConfig, customConfig);
     let className = '"' + packageName + '.' + viewName + '",';
+    componentConfig.alias = 'widget.' + packageName.toLowerCase() + viewName; // add naive alias
     return prefix + className + JSON.stringify(componentConfig, undefined, 4) + suffix;
 }
 
