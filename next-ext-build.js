@@ -49,7 +49,7 @@ const fetchPackageDirs = (sourceDir, packagesDir) => {
 
 const buildArtefactPaths = (packageDirNames) => {
     return packageDirNames.map(packageObj => {
-        let debugPath = [buildDir, buildArtefactType, packageObj.packageName, packageObj.packageName + '.' + debugSuffix + '.' + buildArtefactType].join('/');
+        let debugPath = [buildDir, buildArtefactType, packageObj.packageName, packageObj.packageName + debugJoinBefore + debugSuffix + '.' + buildArtefactType].join('/');
         let packagePath = packageObj.packagePath;
         packageObj.concat = {
             src: [packagePath + '/**/*.js'],
@@ -92,10 +92,18 @@ const getFiles = (buildConfig) => {
     })
 }
 
+const getFileName = function (name, ending, debug = false) {
+    return name.trim() + (debug ? (debugJoinBefore + debugSuffix) : '') + ending.trim();
+}
+
 const writeToDisk = function (path, name, string, ending = '.js') {
     log('WRITING : ' + name)
-    writeFileSync(path + '/' + name.trim() + ending.trim(), string);
-    writeFileSync(path + '/' + name.trim() + '.' + debugSuffix + ending.trim(), string);
+    doWrite([path, getFileName(name, ending)].join('/'), string)
+    doWrite([path, getFileName(name, ending, true)].join('/'), string)
+}
+
+const doWrite = function (path, data) {
+    writeFileSync(path, data);
 }
 
 const sortClasses = (classArray) => {
@@ -160,6 +168,7 @@ const deploy = function () {
 const buildArtefactType = 'js',
     buildDir = 'build',
     debugSuffix = 'debug',
+    debugJoinBefore = '-',
     bundleName = 'bundle'
 
 

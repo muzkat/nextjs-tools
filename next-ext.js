@@ -63,9 +63,9 @@ module.exports = {
         try {
             vm.runInNewContext(fileSource, this.vmContext);
         } catch (e) {
-            console.log(e)
+            log(e)
             this.initExt();
-            console.log('ERROR in File : ' + fileSource);
+            log('ERROR in File : ' + fileSource);
         }
         return this.vmContext;
     },
@@ -73,6 +73,7 @@ module.exports = {
         let bundle = classNamesArray.map(item => {
             return this.filesRaw[item.id - 1];
         });
+        //console.log(bundle.toString());
         return bundle.join('\n');
     }
 }
