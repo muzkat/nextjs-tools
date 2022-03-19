@@ -1,5 +1,5 @@
-const log = function (txt) {
-    console.log(new Date().toISOString() + ' - ' + txt)
+const log = function (txt, type = 'info',) {
+    console.log(new Date().toISOString() + ' - ' + (type || '').toUpperCase() + ' - ' + txt);
 }
 
 const logJson = (text, json, divider = ' : ') => {
@@ -8,5 +8,6 @@ const logJson = (text, json, divider = ' : ') => {
 
 module.exports = {
     log: log,
+    logLine: () => log('-------------------------------'),
     logJson: logJson
 }
