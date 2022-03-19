@@ -3,6 +3,7 @@ const {readdirSync, readFileSync, existsSync, writeFileSync, unlinkSync, mkdirSy
     helper = require('./next-ext'),
     log = require('./log').log,
     packageBuilder = require('./next-package-builder');
+const {logLine} = require("./log");
 
 const getDirectories = source =>
     readdirSync(source, {withFileTypes: true})
@@ -169,8 +170,7 @@ const buildArtefactType = 'js',
     buildDir = 'build',
     debugSuffix = 'debug',
     debugJoinBefore = '-',
-    bundleName = 'bundle'
-
+    bundleName = 'bundle';
 
 const nextBuilder = function (buildFile) {
     return {
@@ -182,33 +182,39 @@ const nextBuilder = function (buildFile) {
         build: async function () {
             let start = new Date(),
                 buildStatus = {statusText: 'OK'};
-            let config = this.getPackageDirectories(buildFile.srcDir, buildFile.packagesDir);
+            let {srcDir = 'src', packagesDir = 'packages', appDir, bundleFiles} = buildFile;
+            let config = this.getPackageDirectories(srcDir, packagesDir);
             config = this.generatePathsForPackages(config);
             config = this.fetchFiles(config);
-            if (buildFile.appDir) {
-                log('APPLICATION DIRECTORY FOUND')
-                config = config.concat(this.getAppConfig(buildFile.appDir));
-                log('APPLICATION FILES ADDED')
+            if (appDir) {
+                log('APPLICATION DIRECTORY FOUND IN CONFIG: ' + appDir)
+                if (existsSync(appDir)) {
+                    config = config.concat(this.getAppConfig(appDir));
+                    log('APPLICATION DIRECTORY ADDED')
+                } else {
+                    log('APPLICATION DIRECTORY SPECIFIED, BUT NOT EXISTING')
+                }
             }
             await this.generateBundles(config).then((configs) => {
-                if (buildFile.bundleFiles) {
+                if (bundleFiles) {
                     let bundleStringArray = configs.filter(conf => conf.moduleString).map(c => c.moduleString);
                     writeToDisk(buildDir, 'bundle', bundleStringArray.join('\n'));
                 }
             }).finally(() => {
-                let end = new Date();
-                let diff = end.getTime() - start.getTime();
+                logLine();
+                let diff = new Date().getTime() - start.getTime();
                 log('BUILD STATUS: ' + buildStatus.statusText);
                 log('BUILD TIME  : ' + diff);
+                log('BUILD DONE.');
+                logLine();
             });
             return true;
         },
         getAppConfig: function (appDir) {
-            let config = this.generatePathsForPackages([{
+            return this.fetchFiles(this.generatePathsForPackages([{
                 packageName: 'application',
                 packagePath: buildFile.srcDir + '/' + appDir
-            }]);
-            return this.fetchFiles(config);
+            }]));
         },
         deploy: deploy,
         createPackage: packageBuilder.createPackage
