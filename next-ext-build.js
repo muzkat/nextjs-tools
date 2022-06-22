@@ -36,16 +36,25 @@ const getDirDown = (directoryPath) => {
     return tree;
 }
 
-const fetchPackageDirs = (sourceDir, packagesDir) => {
+const fetchPackageDirs = (sourceDir, packagesDir, packages) => {
     let packagesPath = [sourceDir, packagesDir].join('/');
     let componentNames = getDirectories(packagesPath).map(i => {
-        return {
+        let item = {
             packageName: i,
+            packagesPath,
             packagePath: packagesPath + '/' + i
+        };
+        // overwrite with custom src path if not folder root
+        // useful if you have ie resources folder -> war / jar
+        if(packages[i]){
+            item.customConfig = packages[i] || {};
+            if(item.customConfig.srcDir){
+                item.packagePath += '/' + item.customConfig.srcDir;
+            }
         }
+        return item;
     });
     log('PACKAGES FOUND : ' + componentNames.length)
-    // console.table(componentNames)
     return componentNames;
 }
 
@@ -65,11 +74,17 @@ const fetchFilesFromTree = (t, basePath) => {
     t = t || {};
     let files = [];
 
+    // not good...
     const downDir = (objRef, path) => {
+        console.log('DOWNDIR: ' + path);
         Object.keys(objRef).map(key => {
+            console.log('KEY:' + key);
+            console.log('PATH:' + path);
             let tPath = path + '/' + key;
+            console.log('tPATH: '+tPath);
             files = files.concat(getFileNames(tPath).map(fileName => tPath + '/' + fileName))
             if (objRef[key]) {
+                console.log('CALL :' + objRef[key] + ' ' + tPath)
                 downDir(objRef[key], tPath)
             }
         })
@@ -82,6 +97,14 @@ const fetchFilesFromTree = (t, basePath) => {
 const getFiles = (buildConfig) => {
     return buildConfig.map(config => {
         log('GET FILES FOR : ' + config.packageName)
+        if(buildConfig.packages){
+            if(buildConfig.packages[config.packageName]){
+                log('CUSTOM CONFIG FOUND');
+                const packageConfig = buildConfig.packages[config.packageName] || {};
+                let {srcDir = undefined} = packageConfig;
+                if(srcDir) config.packagePath = config.packagePath + '/' +srcDir;
+            }
+        }
         let tree = getDirDown(config.packagePath);
         // console.table(tree);
         let files = getFileNames(config.packagePath).map(fileName => config.packagePath + '/' + fileName);
@@ -192,8 +215,8 @@ const nextBuilder = function (buildFile) {
             log('BUILD START')
             let start = new Date(),
                 buildStatus = {statusText: 'OK'};
-            let {srcDir = 'src', packagesDir = 'packages', appDir, bundleFiles} = buildFile;
-            let config = this.getPackageDirectories(srcDir, packagesDir); // array with obj -> packageName, packagePath
+            let {srcDir = 'src', packagesDir = 'packages', appDir, bundleFiles, packages} = buildFile;
+            let config = this.getPackageDirectories(srcDir, packagesDir, packages); // array with obj -> package// Name, packagePath
             config = this.generatePathsForPackages(config);
             config = this.fetchFiles(config);
             if (appDir) {
@@ -227,7 +250,8 @@ const nextBuilder = function (buildFile) {
             }]));
         },
         deploy: deploy,
-        createPackage: packageBuilder.createPackage
+        createPackage: packageBuilder.createPackage,
+        createWarPackage: packageBuilder.createWarPackage
     };
 }
 

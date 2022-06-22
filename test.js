@@ -1,12 +1,17 @@
 const builder = require('./next-ext-build')
 
 const buildFile = {
-    srcDir: 'src',
-    appDir: 'application',
-    packagesDir: 'packages',
+    // srcDir: 'src',
+    appDir: 'application2', // does not exist
+    // packagesDir: 'packages',
     bundleFiles: true,
     deployMode: 'bundle',
-    deployDir: 'public'
+    deployDir: 'public',
+    packages: {
+        testModuleWithResources: {
+            srcDir: 'src'
+        }
+    }
 }
 
 const myBuilder = builder(buildFile);
@@ -28,7 +33,7 @@ myBuilder.build()
 
 
 // create a simple package
-myBuilder.createPackage('test', 'TestView', 'folder')
+//  myBuilder.createWarPackage('test', 'TestView', 'folder')
 
 /**
  * produces

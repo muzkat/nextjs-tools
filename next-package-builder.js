@@ -34,11 +34,13 @@ const createPackageFolders = function (path) {
     log('PACKAGE STRUCTURE created');
 }
 
-const createPackageStructure = function (packageName, viewName, packageFolder) {
+// war -> seperation resources and src
+const createPackageStructure = function (packageName, viewName, packageFolder, war = false) {
     let created = false;
     try {
         // create paths and package structure
         let path = createPath(packageFolder, packageName);
+        if(war) path += '/src'
         createPackageFolders(path);
 
         // create views, right now Main.js
@@ -56,6 +58,9 @@ const createPackageStructure = function (packageName, viewName, packageFolder) {
 const packageBuilder = {
     createPackage: function (packageName = 'foo', vieName = 'Main', folder = 'packages') {
         return createPackageStructure(packageName, vieName, folder);
+    },
+    createWarPackage: function (packageName = 'foo', vieName = 'Main', folder = 'packages') {
+        return createPackageStructure(packageName, vieName, folder, true);
     }
 }
 
