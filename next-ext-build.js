@@ -45,6 +45,7 @@ const fetchPackageDirs = (sourceDir, packagesDir) => {
         }
     });
     log('PACKAGES FOUND : ' + componentNames.length)
+    // console.table(componentNames)
     return componentNames;
 }
 
@@ -81,12 +82,12 @@ const fetchFilesFromTree = (t, basePath) => {
 const getFiles = (buildConfig) => {
     return buildConfig.map(config => {
         log('GET FILES FOR : ' + config.packageName)
-
         let tree = getDirDown(config.packagePath);
-
+        // console.table(tree);
         let files = getFileNames(config.packagePath).map(fileName => config.packagePath + '/' + fileName);
+        // console.table(files);
         files = files.concat(fetchFilesFromTree(tree, config.packagePath))
-
+        // console.table(files);
         config.tree = tree;
         config.files = files;
         return config;
@@ -118,6 +119,13 @@ const sortClasses = (classArray) => {
         } else return 0;
     })
 
+    classArray.sort((a, b) => {
+        if (a.extend && a.extend === b.className) {
+            return 1
+        } else if (b.extend && b.extend === a.className) {
+            return -1
+        } else return 0;
+    })
     console.table(classArray);
     return classArray;
 }
@@ -143,9 +151,10 @@ const generateBundles = async function (cfgs) {
             }
             // get framework
             let moduleClassInfo = helper.getModuleClassInfo();
-            moduleClassInfo.classArray = sortClasses(moduleClassInfo.classArray);
 
+            moduleClassInfo.classArray = sortClasses(moduleClassInfo.classArray);
             let strings = helper.getFilesAsBundle(moduleClassInfo.classArray);
+            // console.log(moduleClassInfo);
             writeToDisk(packagePath, config.packageName, strings);
             config.moduleString = strings;
         }
@@ -180,10 +189,11 @@ const nextBuilder = function (buildFile) {
         fetchFiles: getFiles,
         generateBundles: generateBundles,
         build: async function () {
+            log('BUILD START')
             let start = new Date(),
                 buildStatus = {statusText: 'OK'};
             let {srcDir = 'src', packagesDir = 'packages', appDir, bundleFiles} = buildFile;
-            let config = this.getPackageDirectories(srcDir, packagesDir);
+            let config = this.getPackageDirectories(srcDir, packagesDir); // array with obj -> packageName, packagePath
             config = this.generatePathsForPackages(config);
             config = this.fetchFiles(config);
             if (appDir) {
