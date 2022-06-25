@@ -9,7 +9,8 @@ const buildFile = {
     deployDir: 'public',
     packages: {
         testModuleWithResources: {
-            srcDir: 'src'
+            srcDir: 'src',
+            resDir: 'resources'
         }
     }
 }

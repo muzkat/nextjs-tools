@@ -1,4 +1,4 @@
-const {readdirSync, readFileSync, existsSync, writeFileSync, unlinkSync, mkdirSync} = require('fs'),
+const {readdirSync, readFileSync, existsSync, writeFileSync, unlinkSync, mkdirSync, cpSync} = require('fs'),
     fs = require('fs').promises,
     helper = require('./next-ext'),
     log = require('./log').log,
@@ -36,20 +36,24 @@ const getDirDown = (directoryPath) => {
     return tree;
 }
 
-const fetchPackageDirs = (sourceDir, packagesDir, packages) => {
+const fetchPackageDirs = (sourceDir, packagesDir, packages = {}) => {
     let packagesPath = [sourceDir, packagesDir].join('/');
     let componentNames = getDirectories(packagesPath).map(i => {
         let item = {
             packageName: i,
             packagesPath,
-            packagePath: packagesPath + '/' + i
+            packagePath: packagesPath + '/' + i,
+            packageRoot: packagesPath + '/' + i
         };
         // overwrite with custom src path if not folder root
         // useful if you have ie resources folder -> war / jar
-        if(packages[i]){
+        if (packages[i]) {
             item.customConfig = packages[i] || {};
-            if(item.customConfig.srcDir){
+            if (item.customConfig.srcDir) {
                 item.packagePath += '/' + item.customConfig.srcDir;
+            }
+            if (item.customConfig.resDir) {
+                item.resourcesPath = item.packageRoot + '/' + item.customConfig.resDir
             }
         }
         return item;
@@ -81,7 +85,7 @@ const fetchFilesFromTree = (t, basePath) => {
             console.log('KEY:' + key);
             console.log('PATH:' + path);
             let tPath = path + '/' + key;
-            console.log('tPATH: '+tPath);
+            console.log('tPATH: ' + tPath);
             files = files.concat(getFileNames(tPath).map(fileName => tPath + '/' + fileName))
             if (objRef[key]) {
                 console.log('CALL :' + objRef[key] + ' ' + tPath)
@@ -97,12 +101,12 @@ const fetchFilesFromTree = (t, basePath) => {
 const getFiles = (buildConfig) => {
     return buildConfig.map(config => {
         log('GET FILES FOR : ' + config.packageName)
-        if(buildConfig.packages){
-            if(buildConfig.packages[config.packageName]){
+        if (buildConfig.packages) {
+            if (buildConfig.packages[config.packageName]) {
                 log('CUSTOM CONFIG FOUND');
                 const packageConfig = buildConfig.packages[config.packageName] || {};
                 let {srcDir = undefined} = packageConfig;
-                if(srcDir) config.packagePath = config.packagePath + '/' +srcDir;
+                if (srcDir) config.packagePath = config.packagePath + '/' + srcDir;
             }
         }
         let tree = getDirDown(config.packagePath);
@@ -153,6 +157,12 @@ const sortClasses = (classArray) => {
     return classArray;
 }
 
+const createPath = function (path) {
+    if (!existsSync(path)) {
+        mkdirSync(path);
+    }
+}
+
 const generateBundles = async function (cfgs) {
     if (existsSync(buildDir)) {
         await fs.rm(buildDir, {recursive: true})
@@ -168,18 +178,20 @@ const generateBundles = async function (cfgs) {
             // add to framework
             config.files.map(filePath => helper.getClassObjects(readFileSync(filePath)))
 
-            var packagePath = buildDir + '/' + config.packageName;
-            if (!existsSync(packagePath)) {
-                mkdirSync(packagePath);
-            }
+            let packagePath = buildDir + '/' + config.packageName;
+            createPath(packagePath);
+
             // get framework
             let moduleClassInfo = helper.getModuleClassInfo();
-
             moduleClassInfo.classArray = sortClasses(moduleClassInfo.classArray);
             let strings = helper.getFilesAsBundle(moduleClassInfo.classArray);
             // console.log(moduleClassInfo);
             writeToDisk(packagePath, config.packageName, strings);
             config.moduleString = strings;
+            //copy resources - if defined in buildFile
+            if (config.resourcesPath) {
+                cpSync(config.resourcesPath, packagePath + '/' + config.customConfig.resDir, {recursive: true})
+            }
         }
         return config;
     });
@@ -215,7 +227,7 @@ const nextBuilder = function (buildFile) {
             log('BUILD START')
             let start = new Date(),
                 buildStatus = {statusText: 'OK'};
-            let {srcDir = 'src', packagesDir = 'packages', appDir, bundleFiles, packages} = buildFile;
+            let {srcDir = 'src', packagesDir = 'packages', appDir, bundleFiles, packages = {}} = buildFile;
             let config = this.getPackageDirectories(srcDir, packagesDir, packages); // array with obj -> package// Name, packagePath
             config = this.generatePathsForPackages(config);
             config = this.fetchFiles(config);
