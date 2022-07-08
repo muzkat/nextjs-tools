@@ -240,6 +240,7 @@ const nextBuilder = function (buildFile) {
                     log('APPLICATION DIRECTORY SPECIFIED, BUT NOT EXISTING')
                 }
             }
+            let success = false;
             await this.generateBundles(config).then((configs) => {
                 if (bundleFiles) {
                     let bundleStringArray = configs.filter(conf => conf.moduleString).map(c => c.moduleString);
@@ -247,13 +248,14 @@ const nextBuilder = function (buildFile) {
                 }
             }).finally(() => {
                 logLine();
+                success = true;
                 let diff = new Date().getTime() - start.getTime();
                 log('BUILD STATUS: ' + buildStatus.statusText);
                 log('BUILD TIME  : ' + diff);
                 log('BUILD DONE.');
                 logLine();
             });
-            return true;
+            return {buildConfig: config, success};
         },
         getAppConfig: function (appDir) {
             return this.fetchFiles(this.generatePathsForPackages([{
