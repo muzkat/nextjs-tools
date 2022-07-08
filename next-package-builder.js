@@ -1,5 +1,5 @@
 const {mkdirSync, writeFileSync} = require('fs'),
-    log = require('./log').log;
+    {log} = require('./utils/log');
 
 let baseConfig = {
     extend: 'Ext.panel.Panel'

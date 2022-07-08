@@ -1,5 +1,5 @@
 const vm = require('vm'),
-    log = require('./log').log;
+    {log} = require('./utils/log');
 
 // helper object for each module, application
 const getModuleClassInfo = function () {
@@ -14,7 +14,7 @@ const getModuleClassInfo = function () {
 let moduleClassInformation = {};
 let isCode = false;
 
-const Ext = {
+const ExtJsClassBuildUtil = {
     define: function (name, config) {
         log('DEFINE: ' + name);
         isCode = true;
@@ -43,18 +43,15 @@ const Ext = {
 
 
 module.exports = {
-    Ext: Ext,
+    ExtJsClassBuildUtil,
     vmContext: undefined,
     moduleClassInfo: undefined,
     initExt: function () {
-        var ctx = {Ext: this.Ext};
+        var ctx = {Ext: this.ExtJsClassBuildUtil};
         vm.createContext(ctx);
         this.vmContext = ctx;
     },
     filesRaw: [],
-    getExt: function () {
-        return this.Ext;
-    },
     newModuleBuild: function () {
         moduleClassInformation = getModuleClassInfo();
         this.filesRaw = [];

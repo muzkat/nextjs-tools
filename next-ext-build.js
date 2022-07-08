@@ -1,40 +1,10 @@
-const {readdirSync, readFileSync, existsSync, writeFileSync, unlinkSync, mkdirSync, cpSync} = require('fs'),
+const {readFileSync, existsSync, writeFileSync, unlinkSync, mkdirSync, cpSync} = require('fs'),
+    {getDirectories, getFileNames, getDirDown} = require('./utils/file'),
+    {clean} = require('./utils/build'),
     fs = require('fs').promises,
     helper = require('./next-ext'),
-    log = require('./log').log,
-    packageBuilder = require('./next-package-builder');
-const {logLine} = require("./log");
-
-const getDirectories = source =>
-    readdirSync(source, {withFileTypes: true})
-        .filter(dirent => dirent.isDirectory())
-        .map(dirent => dirent.name)
-
-const getFileNames = source =>
-    readdirSync(source, {withFileTypes: true})
-        .filter(dirent => dirent.isFile())
-        .map(dirent => dirent.name)
-
-const getDirDown = (directoryPath) => {
-    let tree = {};
-
-    const fetchDirsDown = function (dirPath) {
-        let dirs = getDirectories(dirPath);
-        if (dirs.length) {
-            dirs.map(name => {
-                tree[name] = {};
-                let subs = getDirectories(dirPath + '/' + name);
-                subs.map(sub => {
-                    tree[name][sub] = {};
-                    fetchDirsDown(dirPath + '/' + name + '/' + sub) // might not work with sub sub
-                })
-            })
-        }
-    }
-
-    fetchDirsDown(directoryPath);
-    return tree;
-}
+    packageBuilder = require('./next-package-builder'),
+    {logLine, log} = require("./utils/log");
 
 const fetchPackageDirs = (sourceDir, packagesDir, packages = {}) => {
     let packagesPath = [sourceDir, packagesDir].join('/');
@@ -216,54 +186,62 @@ const buildArtefactType = 'js',
     debugJoinBefore = '-',
     bundleName = 'bundle';
 
+
+const doBuild = async function (buildFile) {
+    log('BUILD START')
+    let start = new Date(),
+        buildStatus = {statusText: 'OK'};
+    let {srcDir = 'src', packagesDir = 'packages', appDir, bundleFiles, packages = {}} = buildFile;
+    let config = fetchPackageDirs(srcDir, packagesDir, packages); // array with obj -> package// Name, packagePath
+    config = buildArtefactPaths(config);
+    config = getFiles(config);
+    if (appDir) {
+        log('APPLICATION DIRECTORY FOUND IN CONFIG: ' + appDir)
+        if (existsSync(appDir)) {
+            config = config.concat(this.getAppConfig(appDir, buildFile));
+            log('APPLICATION DIRECTORY ADDED')
+        } else {
+            log('APPLICATION DIRECTORY SPECIFIED, BUT NOT EXISTING')
+        }
+    }
+    let success = false;
+    await generateBundles(config).then((configs) => {
+        if (bundleFiles) {
+            let bundleStringArray = configs.filter(conf => conf.moduleString).map(c => c.moduleString);
+            writeToDisk(buildDir, 'bundle', bundleStringArray.join('\n'));
+        }
+    }).finally(() => {
+        logLine();
+        success = true;
+        let diff = new Date().getTime() - start.getTime();
+        log('BUILD STATUS: ' + buildStatus.statusText);
+        log('BUILD TIME  : ' + diff);
+        log('BUILD DONE.');
+        logLine();
+    });
+    return {buildConfig: config, success, buildDir};
+}
+
+const getAppConfig = function (appDir, buildFile) {
+    return getFiles(buildArtefactPaths([{
+        packageName: 'application',
+        packagePath: buildFile.srcDir + '/' + appDir
+    }]));
+}
+
 const nextBuilder = function (buildFile) {
     return {
-        buildFile: buildFile,
-        getPackageDirectories: fetchPackageDirs,
-        generatePathsForPackages: buildArtefactPaths,
-        fetchFiles: getFiles,
-        generateBundles: generateBundles,
-        build: async function () {
-            log('BUILD START')
-            let start = new Date(),
-                buildStatus = {statusText: 'OK'};
-            let {srcDir = 'src', packagesDir = 'packages', appDir, bundleFiles, packages = {}} = buildFile;
-            let config = this.getPackageDirectories(srcDir, packagesDir, packages); // array with obj -> package// Name, packagePath
-            config = this.generatePathsForPackages(config);
-            config = this.fetchFiles(config);
-            if (appDir) {
-                log('APPLICATION DIRECTORY FOUND IN CONFIG: ' + appDir)
-                if (existsSync(appDir)) {
-                    config = config.concat(this.getAppConfig(appDir));
-                    log('APPLICATION DIRECTORY ADDED')
-                } else {
-                    log('APPLICATION DIRECTORY SPECIFIED, BUT NOT EXISTING')
-                }
+        buildFile,
+        build: function (cleanRun = true) {
+            if (cleanRun) {
+                clean();
+                logLine();
             }
-            let success = false;
-            await this.generateBundles(config).then((configs) => {
-                if (bundleFiles) {
-                    let bundleStringArray = configs.filter(conf => conf.moduleString).map(c => c.moduleString);
-                    writeToDisk(buildDir, 'bundle', bundleStringArray.join('\n'));
-                }
-            }).finally(() => {
-                logLine();
-                success = true;
-                let diff = new Date().getTime() - start.getTime();
-                log('BUILD STATUS: ' + buildStatus.statusText);
-                log('BUILD TIME  : ' + diff);
-                log('BUILD DONE.');
-                logLine();
-            });
-            return {buildConfig: config, success};
+            return doBuild(this.buildFile)
         },
-        getAppConfig: function (appDir) {
-            return this.fetchFiles(this.generatePathsForPackages([{
-                packageName: 'application',
-                packagePath: buildFile.srcDir + '/' + appDir
-            }]));
-        },
-        deploy: deploy,
+        clean,
+        getAppConfig,
+        deploy,
         createPackage: packageBuilder.createPackage,
         createWarPackage: packageBuilder.createWarPackage
     };

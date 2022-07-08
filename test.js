@@ -15,12 +15,15 @@ const buildFile = {
     }
 }
 
-const myBuilder = builder(buildFile);
 // build a package
-myBuilder.build()
+builder(buildFile)
+    .build()
     .then((success) => {
-        if (success && buildFile.deployDir) myBuilder.deploy()
+        console.log(success);
+        //  if (success && buildFile.deployDir) myBuilder.deploy()
     })
+//
+// myBuilder.clean();
 
 /**
  produces
