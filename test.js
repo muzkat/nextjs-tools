@@ -2,7 +2,7 @@ const builder = require('./next-ext-build')
 
 const buildFile = {
     // srcDir: 'src',
-    appDir: 'application2', // does not exist
+    appDir: 'application',
     // packagesDir: 'packages',
     bundleFiles: true,
     deployMode: 'bundle',
