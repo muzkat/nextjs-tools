@@ -197,8 +197,9 @@ const doBuild = async function (buildFile) {
     config = getFiles(config);
     if (appDir) {
         log('APPLICATION DIRECTORY FOUND IN CONFIG: ' + appDir)
-        if (existsSync(appDir)) {
-            config = config.concat(this.getAppConfig(appDir, buildFile));
+        let appDirPath = [srcDir, appDir].join('/');
+        if (existsSync(appDirPath)) {
+            config = config.concat(getAppConfig(appDir, buildFile));
             log('APPLICATION DIRECTORY ADDED')
         } else {
             log('APPLICATION DIRECTORY SPECIFIED, BUT NOT EXISTING')
@@ -223,9 +224,10 @@ const doBuild = async function (buildFile) {
 }
 
 const getAppConfig = function (appDir, buildFile) {
+    const packagePath = [(buildFile.srcDir || 'src'), appDir].join('/');
     return getFiles(buildArtefactPaths([{
         packageName: 'application',
-        packagePath: buildFile.srcDir + '/' + appDir
+        packagePath
     }]));
 }
 
