@@ -7,7 +7,8 @@ const {readFileSync, existsSync, writeFileSync, unlinkSync, mkdirSync, cpSync} =
     {logLine, log} = require("./utils/log");
 
 const fetchPackageDirs = (sourceDir, packagesDir, packages = {}) => {
-    let packagesPath = [sourceDir, packagesDir].join('/');
+    // allow with and without srcDir - ext legacy uses /packages/local/packagename to store individuell js
+    let packagesPath = sourceDir && sourceDir.length ? [sourceDir, packagesDir].join('/') : packagesDir;
     let componentNames = getDirectories(packagesPath).map(i => {
         let item = {
             packageName: i,
