@@ -1,4 +1,5 @@
-const {readdirSync} = require('fs');
+const {readdirSync, writeFileSync, existsSync, mkdirSync} = require('fs');
+const {log} = require("./log");
 
 const getDirectories = source =>
     readdirSync(source, {withFileTypes: true})
@@ -31,4 +32,27 @@ const getDirDown = (directoryPath) => {
     return tree;
 }
 
-module.exports = {getFileNames, getDirectories, getDirDown}
+const getFileName = function (name, ending, debug = false) {
+    return name.trim() + (debug ? (debugJoinBefore + debugSuffix) : '') + ending.trim();
+}
+
+const writeToDisk = function (path, name, string, ending = '.js') {
+    log('WRITING : ' + name)
+    doWrite([path, getFileName(name, ending)].join('/'), string)
+    doWrite([path, getFileName(name, ending, true)].join('/'), string)
+}
+
+const doWrite = function (path, data) {
+    writeFileSync(path, data);
+}
+
+const createPath = function (path) {
+    if (!existsSync(path)) {
+        mkdirSync(path);
+    }
+}
+
+const debugSuffix = 'debug';
+const debugJoinBefore = '-';
+
+module.exports = {getFileNames, getDirectories, getDirDown, writeToDisk, createPath, buildDefaultProperties: {debugSuffix, debugJoinBefore}}

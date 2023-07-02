@@ -1,10 +1,20 @@
-const {readFileSync, existsSync, writeFileSync, unlinkSync, mkdirSync, cpSync} = require('fs'),
-    {getDirectories, getFileNames, getDirDown} = require('./utils/file'),
-    {clean} = require('./utils/build'),
+const {readFileSync, existsSync, unlinkSync, mkdirSync, cpSync} = require('fs'),
+    {
+        getDirectories,
+        getFileNames,
+        getDirDown,
+        writeToDisk,
+        createPath,
+        buildDefaultProperties
+    } = require('./utils/file'),
+    {emptyFolder} = require('./utils/build'),
+    {sortClasses} = require('./utils/packagebuild'),
     fs = require('fs').promises,
     helper = require('./next-ext'),
     packageBuilder = require('./next-package-builder'),
     {logLine, log} = require("./utils/log");
+
+const {debugSuffix, debugJoinBefore} = buildDefaultProperties;
 
 const fetchPackageDirs = (sourceDir, packagesDir, packages = {}) => {
     // allow with and without srcDir - ext legacy uses /packages/local/packagename to store individuell js
@@ -92,47 +102,6 @@ const getFiles = (buildConfig) => {
     })
 }
 
-const getFileName = function (name, ending, debug = false) {
-    return name.trim() + (debug ? (debugJoinBefore + debugSuffix) : '') + ending.trim();
-}
-
-const writeToDisk = function (path, name, string, ending = '.js') {
-    log('WRITING : ' + name)
-    doWrite([path, getFileName(name, ending)].join('/'), string)
-    doWrite([path, getFileName(name, ending, true)].join('/'), string)
-}
-
-const doWrite = function (path, data) {
-    writeFileSync(path, data);
-}
-
-const sortClasses = (classArray) => {
-    log('SORTING CLASSES')
-
-    classArray.sort((a, b) => {
-        if (a.requires && a.requires.indexOf(b.className) !== -1) {
-            return 1
-        } else if (b.requires && b.requires.indexOf(a.className) !== -1) {
-            return -1
-        } else return 0;
-    })
-
-    classArray.sort((a, b) => {
-        if (a.extend && a.extend === b.className) {
-            return 1
-        } else if (b.extend && b.extend === a.className) {
-            return -1
-        } else return 0;
-    })
-    console.table(classArray);
-    return classArray;
-}
-
-const createPath = function (path) {
-    if (!existsSync(path)) {
-        mkdirSync(path);
-    }
-}
 
 const generateBundles = async function (cfgs) {
     if (existsSync(buildDir)) {
@@ -180,12 +149,8 @@ const deploy = function () {
     return fs.rename(oldPath + '/' + fileName, newPath + '/' + fileName);
 }
 
-
 const buildArtefactType = 'js',
-    buildDir = 'build',
-    debugSuffix = 'debug',
-    debugJoinBefore = '-',
-    bundleName = 'bundle';
+    buildDir = 'build';
 
 
 const doBuild = async function (buildFile) {
@@ -207,20 +172,22 @@ const doBuild = async function (buildFile) {
         }
     }
     let success = false;
-    await generateBundles(config).then((configs) => {
-        if (bundleFiles) {
-            let bundleStringArray = configs.filter(conf => conf.moduleString).map(c => c.moduleString);
-            writeToDisk(buildDir, 'bundle', bundleStringArray.join('\n'));
-        }
-    }).finally(() => {
-        logLine();
-        success = true;
-        let diff = new Date().getTime() - start.getTime();
-        log('BUILD STATUS: ' + buildStatus.statusText);
-        log('BUILD TIME  : ' + diff);
-        log('BUILD DONE.');
-        logLine();
-    });
+    await generateBundles(config)
+        .then((configs) => {
+            if (bundleFiles) {
+                let bundleStringArray = configs.filter(conf => conf.moduleString).map(c => c.moduleString);
+                writeToDisk(buildDir, 'bundle', bundleStringArray.join('\n'));
+            }
+        })
+        .finally(() => {
+            logLine();
+            success = true;
+            let diff = new Date().getTime() - start.getTime();
+            log('BUILD STATUS: ' + buildStatus.statusText);
+            log('BUILD TIME  : ' + diff);
+            log('BUILD DONE.');
+            logLine();
+        });
     return {buildConfig: config, success, buildDir};
 }
 
@@ -237,12 +204,12 @@ const nextBuilder = function (buildFile) {
         buildFile,
         build: function (cleanRun = true) {
             if (cleanRun) {
-                clean();
+                emptyFolder();
                 logLine();
             }
             return doBuild(this.buildFile)
         },
-        clean,
+        clean: emptyFolder, // keep api stable for now
         getAppConfig,
         deploy,
         createPackage: packageBuilder.createPackage,
