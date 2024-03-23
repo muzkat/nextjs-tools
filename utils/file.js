@@ -1,5 +1,5 @@
 const {readdirSync, writeFileSync, existsSync, mkdirSync} = require('fs');
-const {log} = require("./log");
+const {log} = require("@srcld/sourlog");
 
 const getDirectories = source =>
     readdirSync(source, {withFileTypes: true})

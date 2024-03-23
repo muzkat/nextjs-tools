@@ -1,5 +1,5 @@
 const vm = require('vm'),
-    {log} = require('./utils/log');
+    {log} = require('@srcld/sourlog');
 
 // helper object for each module, application
 const getModuleClassInfo = function () {

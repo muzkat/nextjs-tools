@@ -19,5 +19,7 @@
     "url": "https://github.com/muzkat/nextjs-tools/issues"
   },
   "homepage": "https://github.com/muzkat/nextjs-tools#readme",
-  "devDependencies": {}
+  "dependencies": {
+    "@srcld/sourlog": "^0.0.4"
+  }
 }

@@ -1,8 +1,8 @@
-const {log} = require("./log");
+const {log, logTable} = require("@srcld/sourlog");
 const sortClasses = (classArray) => {
     log('SORTING CLASSES')
 
-    console.table(classArray);
+    logTable(classArray);
 
     const requiredClassNames = [];
     const extendClassNames = [];
@@ -32,8 +32,8 @@ const sortClasses = (classArray) => {
         return item;
     })
 
-    console.table(requiredClassNames);
-    console.table(extendClassNames);
+    logTable(requiredClassNames);
+    logTable(extendClassNames);
 
     const handledClassNames = [];
 
@@ -66,10 +66,10 @@ const sortClasses = (classArray) => {
     modifiedClassArray = modifiedClassArray.concat(missing);
 
     if (modifiedClassArray.length === classArray.length) {
-        console.log('GOODIE!')
+        log('GOODIE!')
     }
 
-    console.table(modifiedClassArray);
+    logTable(modifiedClassArray);
 
     return modifiedClassArray;
 

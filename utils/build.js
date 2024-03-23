@@ -1,5 +1,5 @@
 const {rmSync} = require('fs'),
-    {log} = require('./log');
+    {log} = require('@srcld/sourlog');
 
 const emptyFolder = function (folder = 'build') {
     log('DELETING BUILD FOLDER');

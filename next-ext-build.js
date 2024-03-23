@@ -12,7 +12,7 @@ const {readFileSync, existsSync, unlinkSync, mkdirSync, cpSync} = require('fs'),
     fs = require('fs').promises,
     helper = require('./next-ext'),
     packageBuilder = require('./next-package-builder'),
-    {logLine, log} = require("./utils/log");
+    {logLine, log} = require("@srcld/sourlog");
 
 const {debugSuffix, debugJoinBefore} = buildDefaultProperties;
 

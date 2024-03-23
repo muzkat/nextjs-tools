@@ -1,5 +1,5 @@
 const {mkdirSync, writeFileSync} = require('fs'),
-    {log} = require('./utils/log');
+    {log} = require('@srcld/sourlog');
 
 let baseConfig = {
     extend: 'Ext.panel.Panel'
