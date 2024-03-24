@@ -5,11 +5,10 @@ const {readFileSync, existsSync, unlinkSync, mkdirSync, cpSync} = require('fs'),
         getDirDown,
         writeToDisk,
         createPath,
-        buildDefaultProperties
+        buildDefaultProperties, renameFile, emptyOrCreateFolder
     } = require('./utils/file'),
     {emptyFolder} = require('./utils/build'),
     {sortClasses} = require('./utils/packagebuild'),
-    fs = require('fs').promises,
     helper = require('./next-ext'),
     packageBuilder = require('./next-package-builder'),
     {logLine, log} = require("@srcld/sourlog");
@@ -43,13 +42,16 @@ const fetchPackageDirs = (sourceDir, packagesDir, packages = {}) => {
     return componentNames;
 }
 
+const debugPath = function (packageName) {
+    return [buildDir, buildArtefactType, packageName, packageName + debugJoinBefore + debugSuffix + '.' + buildArtefactType].join('/');
+}
+
 const buildArtefactPaths = (packageDirNames) => {
     return packageDirNames.map(packageObj => {
-        let debugPath = [buildDir, buildArtefactType, packageObj.packageName, packageObj.packageName + debugJoinBefore + debugSuffix + '.' + buildArtefactType].join('/');
-        let packagePath = packageObj.packagePath;
+        let {packagePath, packageName} = packageObj;
         packageObj.concat = {
             src: [packagePath + '/**/*.js'],
-            dest: debugPath
+            dest: debugPath(packageName)
         };
         return packageObj
     });
@@ -61,15 +63,15 @@ const fetchFilesFromTree = (t, basePath) => {
 
     // not good...
     const downDir = (objRef, path) => {
-        console.log('DOWNDIR: ' + path);
+        log('DOWNDIR: ' + path);
         Object.keys(objRef).map(key => {
-            console.log('KEY:' + key);
-            console.log('PATH:' + path);
+            log('KEY:' + key);
+            log('PATH:' + path);
             let tPath = path + '/' + key;
-            console.log('tPATH: ' + tPath);
+            log('tPATH: ' + tPath);
             files = files.concat(getFileNames(tPath).map(fileName => tPath + '/' + fileName))
             if (objRef[key]) {
-                console.log('CALL :' + objRef[key] + ' ' + tPath)
+                log('CALL :' + objRef[key] + ' ' + tPath)
                 downDir(objRef[key], tPath)
             }
         })
@@ -81,21 +83,19 @@ const fetchFilesFromTree = (t, basePath) => {
 
 const getFiles = (buildConfig) => {
     return buildConfig.map(config => {
-        log('GET FILES FOR : ' + config.packageName)
+        let {packageName} = config;
+        log('GET FILES FOR : ' + packageName)
         if (buildConfig.packages) {
-            if (buildConfig.packages[config.packageName]) {
+            if (buildConfig.packages[packageName]) {
                 log('CUSTOM CONFIG FOUND');
-                const packageConfig = buildConfig.packages[config.packageName] || {};
+                const packageConfig = buildConfig.packages[packageName] || {};
                 let {srcDir = undefined} = packageConfig;
                 if (srcDir) config.packagePath = config.packagePath + '/' + srcDir;
             }
         }
         let tree = getDirDown(config.packagePath);
-        // console.table(tree);
         let files = getFileNames(config.packagePath).map(fileName => config.packagePath + '/' + fileName);
-        // console.table(files);
         files = files.concat(fetchFilesFromTree(tree, config.packagePath))
-        // console.table(files);
         config.tree = tree;
         config.files = files;
         return config;
@@ -104,11 +104,7 @@ const getFiles = (buildConfig) => {
 
 
 const generateBundles = async function (cfgs) {
-    if (existsSync(buildDir)) {
-        await fs.rm(buildDir, {recursive: true})
-            .then(() => log('BUILD DIRECTORY REMOVED'));
-    }
-    mkdirSync(buildDir);
+    await emptyOrCreateFolder(buildDir);
 
     return cfgs.map(config => {
         if (config.files) {
@@ -145,8 +141,11 @@ const deploy = function () {
 
     if (existsSync(newPath)) log('DEPLOY TARGET PATH EXISTS');
     else mkdirSync(newPath, {recursive: true});
-    if (existsSync(newPath + '/' + fileName)) unlinkSync(newPath + '/' + fileName);
-    return fs.rename(oldPath + '/' + fileName, newPath + '/' + fileName);
+
+    oldPath = [oldPath, fileName].join('/');
+    newPath = [newPath, fileName].join('/');
+    if (existsSync(newPath)) unlinkSync(newPath);
+    return renameFile(oldPath, newPath);
 }
 
 const buildArtefactType = 'js',
@@ -202,6 +201,7 @@ const getAppConfig = function (appDir, buildFile) {
 const nextBuilder = function (buildFile) {
     return {
         buildFile,
+        log,
         build: function (cleanRun = true) {
             if (cleanRun) {
                 emptyFolder();

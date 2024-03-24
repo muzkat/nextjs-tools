@@ -15,14 +15,16 @@ const buildFile = {
     }
 }
 
-// build a package
-builder(buildFile)
-    .build()
+// builderInstance
+const b = builder(buildFile);
+
+b.build()
     .then((success) => {
-        console.log(success);
+        b.log(success);
         //  if (success && buildFile.deployDir) myBuilder.deploy()
     })
-//
+
+
 // myBuilder.clean();
 
 /**
@@ -45,9 +47,9 @@ builder(buildFile)
  *
  *
  * Ext.define("test.TestView",{
-    "extend": "Ext.panel.Panel",
-    "moduleId": null,
-    "alias": "widget.testTestView"
-})
+ "extend": "Ext.panel.Panel",
+ "moduleId": null,
+ "alias": "widget.testTestView"
+ })
  *
  */

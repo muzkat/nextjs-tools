@@ -45,7 +45,7 @@ const createPackageStructure = function (packageName, viewName, packageFolder, w
 
         // create views, right now Main.js
         let componentString = createView(viewName, packageName);
-        console.log(componentString);
+        log(componentString);
         // write views to disk
         writeFileSync(path + '/' + viewName.trim() + ending.trim(), componentString);
         created = true;

@@ -1,4 +1,5 @@
 const {readdirSync, writeFileSync, existsSync, mkdirSync} = require('fs');
+const fs = require('fs').promises;
 const {log} = require("@srcld/sourlog");
 
 const getDirectories = source =>
@@ -52,7 +53,29 @@ const createPath = function (path) {
     }
 }
 
+const emptyOrCreateFolder = async function (dir) {
+    if (existsSync(dir)) {
+        await fs.rm(dir, {recursive: true})
+            .then(() => log('BUILD DIRECTORY REMOVED'));
+    } else {
+        mkdirSync(dir);
+    }
+}
+
+const renameFile = function (oldPath, newPath) {
+    return fs.rename(oldPath, newPath)
+}
+
 const debugSuffix = 'debug';
 const debugJoinBefore = '-';
 
-module.exports = {getFileNames, getDirectories, getDirDown, writeToDisk, createPath, buildDefaultProperties: {debugSuffix, debugJoinBefore}}
+module.exports = {
+    getFileNames,
+    getDirectories,
+    getDirDown,
+    writeToDisk,
+    createPath,
+    buildDefaultProperties: {debugSuffix, debugJoinBefore},
+    emptyOrCreateFolder,
+    renameFile
+}
