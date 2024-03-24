@@ -1,6 +1,6 @@
 const {readdirSync, writeFileSync, existsSync, mkdirSync} = require('fs');
 const fs = require('fs').promises;
-const {log} = require("@srcld/sourlog");
+const {log, logJson} = require("@srcld/sourlog");
 
 const getDirectories = source =>
     readdirSync(source, {withFileTypes: true})
@@ -12,24 +12,17 @@ const getFileNames = source =>
         .filter(dirent => dirent.isFile())
         .map(dirent => dirent.name)
 
-const getDirDown = (directoryPath) => {
-    let tree = {};
+const buildAst = function (p) {
+    let ast = {};
+    getDirectories(p).map((subFolder) => {
+        ast[subFolder] = buildAst([p, subFolder].join('/'));
+    })
+    return ast;
+}
 
-    const fetchDirsDown = function (dirPath) {
-        let dirs = getDirectories(dirPath);
-        if (dirs.length) {
-            dirs.map(name => {
-                tree[name] = {};
-                let subs = getDirectories(dirPath + '/' + name);
-                subs.map(sub => {
-                    tree[name][sub] = {};
-                    fetchDirsDown(dirPath + '/' + name + '/' + sub) // might not work with sub sub
-                })
-            })
-        }
-    }
-
-    fetchDirsDown(directoryPath);
+const buildTree = function (path) {
+    let tree = buildAst(path);
+    logJson('TREE:', tree);
     return tree;
 }
 
@@ -71,8 +64,8 @@ const debugJoinBefore = '-';
 
 module.exports = {
     getFileNames,
+    buildTree,
     getDirectories,
-    getDirDown,
     writeToDisk,
     createPath,
     buildDefaultProperties: {debugSuffix, debugJoinBefore},

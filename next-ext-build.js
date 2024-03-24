@@ -2,10 +2,9 @@ const {readFileSync, existsSync, unlinkSync, mkdirSync, cpSync} = require('fs'),
     {
         getDirectories,
         getFileNames,
-        getDirDown,
         writeToDisk,
         createPath,
-        buildDefaultProperties, renameFile, emptyOrCreateFolder
+        buildDefaultProperties, renameFile, emptyOrCreateFolder, buildTree
     } = require('./utils/file'),
     {emptyFolder} = require('./utils/build'),
     {sortClasses} = require('./utils/packagebuild'),
@@ -93,7 +92,7 @@ const getFiles = (buildConfig) => {
                 if (srcDir) config.packagePath = config.packagePath + '/' + srcDir;
             }
         }
-        let tree = getDirDown(config.packagePath);
+        let tree = buildTree(config.packagePath);
         let files = getFileNames(config.packagePath).map(fileName => config.packagePath + '/' + fileName);
         files = files.concat(fetchFilesFromTree(tree, config.packagePath))
         config.tree = tree;

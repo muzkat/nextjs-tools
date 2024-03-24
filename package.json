@@ -1,7 +1,7 @@
 {
   "name": "@muzkat/nextjs-tools",
   "version": "0.1.9-0",
-  "description": "Build tools for ExtJS - build ExtJS packages fast",
+  "description": "Modern build toolkit for ExtJS.",
   "main": "next-ext-build.js",
   "scripts": {
     "test": "node test.js"

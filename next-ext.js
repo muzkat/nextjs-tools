@@ -97,9 +97,11 @@ module.exports = {
     },
     getFilesAsBundle: function (classNamesArray) {
         log('FILES RAW: ' + this.filesRaw.length)
-        let bundle = classNamesArray.map(item => {
-            return this.filesRaw[item.id - 1]; // buffer
-        });
+        let bundle = classNamesArray
+            .map(item => {
+                log('compiling..' + item.className);
+                return this.filesRaw[item.id - 1]; // buffer
+            });
         return bundle.join('\n');
     }
 }
