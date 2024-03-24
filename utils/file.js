@@ -1,4 +1,4 @@
-const {readdirSync, writeFileSync, existsSync, mkdirSync} = require('fs');
+const {readdirSync, writeFileSync, existsSync, mkdirSync, rmSync} = require('fs');
 const fs = require('fs').promises;
 const {log, logJson} = require("@srcld/sourlog");
 
@@ -55,6 +55,11 @@ const emptyOrCreateFolder = async function (dir) {
     }
 }
 
+const emptyFolder = function (folder = 'build') {
+    log('DELETING BUILD FOLDER');
+    rmSync('./' + folder, {recursive: true, force: true});
+}
+
 const renameFile = function (oldPath, newPath) {
     return fs.rename(oldPath, newPath)
 }
@@ -72,6 +77,7 @@ module.exports = {
     getDirectories,
     writeToDisk,
     createPath,
+    emptyFolder,
     a2p,
     buildDefaultProperties: {debugSuffix, debugJoinBefore},
     emptyOrCreateFolder,

@@ -1,9 +1,8 @@
 const builder = require('./next-ext-build')
+let {logJson} = require('@srcld/sourlog');
 
 const buildFile = {
-    // srcDir: 'src',
     appDir: 'application',
-    // packagesDir: 'packages',
     bundleFiles: true,
     deployMode: 'bundle',
     deployDir: 'public',
@@ -19,8 +18,9 @@ const buildFile = {
 const b = builder(buildFile);
 
 b.build()
-    .then((success) => {
-        b.log(success);
+    .then((obj) => {
+        // let {success} = obj;
+        // logJson('SUCCESS', success);
         //  if (success && buildFile.deployDir) myBuilder.deploy()
     })
 

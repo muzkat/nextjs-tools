@@ -4,9 +4,13 @@ const {readFileSync, existsSync, unlinkSync, mkdirSync, cpSync} = require('fs'),
         getFileNames,
         writeToDisk,
         createPath,
-        buildDefaultProperties, renameFile, emptyOrCreateFolder, buildTree, a2p
+        buildDefaultProperties,
+        renameFile,
+        emptyOrCreateFolder,
+        buildTree,
+        a2p,
+        emptyFolder
     } = require('./utils/file'),
-    {emptyFolder} = require('./utils/build'),
     {sortClasses} = require('./utils/packagebuild'),
     helper = require('./next-ext'),
     packageBuilder = require('./next-package-builder'),
@@ -94,14 +98,12 @@ const getFiles = (buildConfig) => {
         }
         let tree = buildTree(config.packagePath);
         let files = getFileNames(config.packagePath).map(fileName => a2p([config.packagePath, fileName]));
-        logTable(files);
         files = files.concat(fetchFilesFromTree(tree, config.packagePath))
         config.tree = tree;
         config.files = files;
         return config;
     })
 }
-
 
 const generateBundles = async function (cfgs) {
     await emptyOrCreateFolder(buildDir);
@@ -149,20 +151,27 @@ const deploy = function () {
 }
 
 const buildArtefactType = 'js',
-    buildDir = 'build';
+    buildDir = 'build',
+    defaultSrcDirName = 'src',
+    defaultPackagesDirName = 'packages';
 
 const doBuild = async function (buildFile) {
     log('BUILD START')
     let start = new Date(),
         buildStatus = {statusText: 'OK'};
-    let {srcDir = 'src', packagesDir = 'packages', appDir, bundleFiles, packages = {}} = buildFile;
+    let {
+        srcDir = defaultSrcDirName,
+        packagesDir = defaultPackagesDirName,
+        appDir,
+        bundleFiles,
+        packages = {}
+    } = buildFile;
     let config = fetchPackageDirs(srcDir, packagesDir, packages); // array with obj -> package// Name, packagePath
     config = buildArtefactPaths(config);
     config = getFiles(config);
     if (appDir) {
         log('APPLICATION DIRECTORY FOUND IN CONFIG: ' + appDir)
-        let appDirPath = a2p([srcDir, appDir]);
-        if (existsSync(appDirPath)) {
+        if (existsSync(a2p([srcDir, appDir]))) {
             config = config.concat(getAppConfig(appDir, buildFile));
             log('APPLICATION DIRECTORY ADDED')
         } else {
@@ -172,10 +181,7 @@ const doBuild = async function (buildFile) {
     let success = false;
     await generateBundles(config)
         .then((configs) => {
-            if (bundleFiles) {
-                let bundleStringArray = configs.filter(conf => conf.moduleString).map(c => c.moduleString);
-                writeToDisk(buildDir, 'bundle', bundleStringArray.join('\n'));
-            }
+            if (bundleFiles) writeAsBundle(buildDir, configs);
         })
         .finally(() => {
             logLine();
@@ -189,10 +195,20 @@ const doBuild = async function (buildFile) {
     return {buildConfig: config, success, buildDir};
 }
 
+const writeAsBundle = function (buildDir, configs) {
+    writeToDisk(buildDir, 'bundle', getBundleString(configs));
+}
+
+const getBundleString = function (configs = []) {
+    return configs
+        .filter(conf => conf.moduleString)
+        .map(c => c.moduleString).join('\n');
+}
+
 const getAppConfig = function (appDir, buildFile) {
     return getFiles(buildArtefactPaths([{
         packageName: 'application',
-        packagePath: a2p([(buildFile.srcDir || 'src'), appDir])
+        packagePath: a2p([(buildFile.srcDir || defaultSrcDirName), appDir])
     }]));
 }
 
