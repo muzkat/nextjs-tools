@@ -1,7 +1,6 @@
 const {log, logTable} = require("@srcld/sourlog");
 const sortClasses = (classArray) => {
     log('SORTING CLASSES')
-    logTable(classArray);
 
     classArray.sort((a, b) => {
         const ahasRequires = a.requires && a.requires.length;
@@ -27,7 +26,7 @@ const sortClasses = (classArray) => {
     //         return -1
     //     } else return 0;
     // })
-
+    logTable(classArray);
     return classArray;
 }
 

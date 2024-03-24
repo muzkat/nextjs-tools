@@ -4,25 +4,25 @@ const {readFileSync, existsSync, unlinkSync, mkdirSync, cpSync} = require('fs'),
         getFileNames,
         writeToDisk,
         createPath,
-        buildDefaultProperties, renameFile, emptyOrCreateFolder, buildTree
+        buildDefaultProperties, renameFile, emptyOrCreateFolder, buildTree, a2p
     } = require('./utils/file'),
     {emptyFolder} = require('./utils/build'),
     {sortClasses} = require('./utils/packagebuild'),
     helper = require('./next-ext'),
     packageBuilder = require('./next-package-builder'),
-    {logLine, log} = require("@srcld/sourlog");
+    {logLine, log, logTable} = require("@srcld/sourlog");
 
 const {debugSuffix, debugJoinBefore} = buildDefaultProperties;
 
 const fetchPackageDirs = (sourceDir, packagesDir, packages = {}) => {
     // allow with and without srcDir - ext legacy uses /packages/local/packagename to store individuell js
-    let packagesPath = sourceDir && sourceDir.length ? [sourceDir, packagesDir].join('/') : packagesDir;
+    let packagesPath = sourceDir && sourceDir.length ? a2p([sourceDir, packagesDir]) : packagesDir;
     let componentNames = getDirectories(packagesPath).map(i => {
         let item = {
             packageName: i,
             packagesPath,
-            packagePath: packagesPath + '/' + i,
-            packageRoot: packagesPath + '/' + i
+            packagePath: a2p([packagesPath, i]),
+            packageRoot: a2p([packagesPath, i])
         };
         // overwrite with custom src path if not folder root
         // useful if you have ie resources folder -> war / jar
@@ -32,7 +32,7 @@ const fetchPackageDirs = (sourceDir, packagesDir, packages = {}) => {
                 item.packagePath += '/' + item.customConfig.srcDir;
             }
             if (item.customConfig.resDir) {
-                item.resourcesPath = item.packageRoot + '/' + item.customConfig.resDir
+                item.resourcesPath = a2p([item.packageRoot, item.customConfig.resDir])
             }
         }
         return item;
@@ -42,7 +42,7 @@ const fetchPackageDirs = (sourceDir, packagesDir, packages = {}) => {
 }
 
 const debugPath = function (packageName) {
-    return [buildDir, buildArtefactType, packageName, packageName + debugJoinBefore + debugSuffix + '.' + buildArtefactType].join('/');
+    return a2p([buildDir, buildArtefactType, packageName, packageName + debugJoinBefore + debugSuffix + '.' + buildArtefactType]);
 }
 
 const buildArtefactPaths = (packageDirNames) => {
@@ -89,11 +89,12 @@ const getFiles = (buildConfig) => {
                 log('CUSTOM CONFIG FOUND');
                 const packageConfig = buildConfig.packages[packageName] || {};
                 let {srcDir = undefined} = packageConfig;
-                if (srcDir) config.packagePath = config.packagePath + '/' + srcDir;
+                if (srcDir) config.packagePath = a2p([config.packagePath, srcDir]);
             }
         }
         let tree = buildTree(config.packagePath);
-        let files = getFileNames(config.packagePath).map(fileName => config.packagePath + '/' + fileName);
+        let files = getFileNames(config.packagePath).map(fileName => a2p([config.packagePath, fileName]));
+        logTable(files);
         files = files.concat(fetchFilesFromTree(tree, config.packagePath))
         config.tree = tree;
         config.files = files;
@@ -113,7 +114,7 @@ const generateBundles = async function (cfgs) {
             // add to framework
             config.files.map(filePath => helper.getClassObjects(readFileSync(filePath)))
 
-            let packagePath = buildDir + '/' + config.packageName;
+            let packagePath = a2p([buildDir, config.packageName]);
             createPath(packagePath);
 
             // get framework
@@ -141,15 +142,14 @@ const deploy = function () {
     if (existsSync(newPath)) log('DEPLOY TARGET PATH EXISTS');
     else mkdirSync(newPath, {recursive: true});
 
-    oldPath = [oldPath, fileName].join('/');
-    newPath = [newPath, fileName].join('/');
+    oldPath = a2p([oldPath, fileName]);
+    newPath = a2p([newPath, fileName]);
     if (existsSync(newPath)) unlinkSync(newPath);
     return renameFile(oldPath, newPath);
 }
 
 const buildArtefactType = 'js',
     buildDir = 'build';
-
 
 const doBuild = async function (buildFile) {
     log('BUILD START')
@@ -161,7 +161,7 @@ const doBuild = async function (buildFile) {
     config = getFiles(config);
     if (appDir) {
         log('APPLICATION DIRECTORY FOUND IN CONFIG: ' + appDir)
-        let appDirPath = [srcDir, appDir].join('/');
+        let appDirPath = a2p([srcDir, appDir]);
         if (existsSync(appDirPath)) {
             config = config.concat(getAppConfig(appDir, buildFile));
             log('APPLICATION DIRECTORY ADDED')
@@ -190,10 +190,9 @@ const doBuild = async function (buildFile) {
 }
 
 const getAppConfig = function (appDir, buildFile) {
-    const packagePath = [(buildFile.srcDir || 'src'), appDir].join('/');
     return getFiles(buildArtefactPaths([{
         packageName: 'application',
-        packagePath
+        packagePath: a2p([(buildFile.srcDir || 'src'), appDir])
     }]));
 }
 

@@ -15,7 +15,7 @@ const getFileNames = source =>
 const buildAst = function (p) {
     let ast = {};
     getDirectories(p).map((subFolder) => {
-        ast[subFolder] = buildAst([p, subFolder].join('/'));
+        ast[subFolder] = buildAst(a2p([p, subFolder]));
     })
     return ast;
 }
@@ -32,8 +32,8 @@ const getFileName = function (name, ending, debug = false) {
 
 const writeToDisk = function (path, name, string, ending = '.js') {
     log('WRITING : ' + name)
-    doWrite([path, getFileName(name, ending)].join('/'), string)
-    doWrite([path, getFileName(name, ending, true)].join('/'), string)
+    doWrite(a2p([path, getFileName(name, ending)]), string)
+    doWrite(a2p([path, getFileName(name, ending, true)]), string)
 }
 
 const doWrite = function (path, data) {
@@ -62,12 +62,17 @@ const renameFile = function (oldPath, newPath) {
 const debugSuffix = 'debug';
 const debugJoinBefore = '-';
 
+const a2p = function (array = []) {
+    return array.join('/');
+}
+
 module.exports = {
     getFileNames,
     buildTree,
     getDirectories,
     writeToDisk,
     createPath,
+    a2p,
     buildDefaultProperties: {debugSuffix, debugJoinBefore},
     emptyOrCreateFolder,
     renameFile

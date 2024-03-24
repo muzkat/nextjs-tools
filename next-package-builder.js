@@ -1,5 +1,6 @@
 const {mkdirSync, writeFileSync} = require('fs'),
     {log} = require('@srcld/sourlog');
+const {a2p} = require("./utils/file");
 
 let baseConfig = {
     extend: 'Ext.panel.Panel'
@@ -22,11 +23,6 @@ const createView = function (viewName, packageName) {
     return prefix + className + JSON.stringify(componentConfig, undefined, 4) + suffix;
 }
 
-
-const createPath = function (folder, name) {
-    return [folder, name].join('/')
-}
-
 const createPackageFolders = function (path) {
     mkdirSync(path, {
         recursive: true
@@ -39,8 +35,8 @@ const createPackageStructure = function (packageName, viewName, packageFolder, w
     let created = false;
     try {
         // create paths and package structure
-        let path = createPath(packageFolder, packageName);
-        if(war) path += '/src'
+        let paths = [packageFolder, packageName].concat(war ? ['src'] : []);
+        let path = a2p(paths);
         createPackageFolders(path);
 
         // create views, right now Main.js
