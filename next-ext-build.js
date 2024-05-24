@@ -1,4 +1,4 @@
-const {readFileSync, existsSync, unlinkSync, cpSync} = require('fs'),
+const {readFileSync, unlinkSync, cpSync} = require('fs'),
     {
         getDirectories,
         getFileNames,
@@ -9,7 +9,7 @@ const {readFileSync, existsSync, unlinkSync, cpSync} = require('fs'),
         emptyOrCreateFolder,
         buildTree,
         a2p,
-        emptyFolder
+        emptyFolder, exists
     } = require('./src/utils/file'),
     {sortClasses} = require('./src/utils/packagebuild'),
     helper = require('./next-ext'),
@@ -141,12 +141,12 @@ const deploy = function () {
     let newPath = 'public/app'
     let fileName = 'bundle.js'
 
-    if (existsSync(newPath)) log('DEPLOY TARGET PATH EXISTS');
+    if (exists(newPath)) log('DEPLOY TARGET PATH EXISTS');
     else createPath(newPath, true);
 
     oldPath = a2p([oldPath, fileName]);
     newPath = a2p([newPath, fileName]);
-    if (existsSync(newPath)) unlinkSync(newPath);
+    if (exists(newPath)) unlinkSync(newPath);
     return renameFile(oldPath, newPath);
 }
 
@@ -171,7 +171,7 @@ const doBuild = async function (buildFile) {
     config = getFiles(config);
     if (appDir) {
         log('APPLICATION DIRECTORY FOUND IN CONFIG: ' + appDir)
-        if (existsSync(a2p([srcDir, appDir]))) {
+        if (exists(a2p([srcDir, appDir]))) {
             config = config.concat(getAppConfig(appDir, buildFile));
             log('APPLICATION DIRECTORY ADDED')
         } else {

@@ -41,15 +41,19 @@ const doWrite = function (path, data) {
 }
 
 const createPath = function (path, recursive = false) {
-    if (!existsSync(path)) createDir(path, recursive);
+    if (!exists(path)) createDir(path, recursive);
 }
 
 const createDir = function (dir, recursive = false) {
     mkdirSync(dir, {recursive})
 }
 
+const exists = function (path){
+    return existsSync(path)
+}
+
 const emptyOrCreateFolder = async function (dir) {
-    if (existsSync(dir)) {
+    if (exists(dir)) {
         await fs.rm(dir, {recursive: true})
             .then(() => log('BUILD DIRECTORY REMOVED'));
     } else {
@@ -83,5 +87,5 @@ module.exports = {
     a2p,
     buildDefaultProperties: {debugSuffix, debugJoinBefore},
     emptyOrCreateFolder,
-    renameFile, createDir, doWrite
+    renameFile, createDir, doWrite, exists
 }
