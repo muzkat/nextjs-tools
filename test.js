@@ -6,6 +6,7 @@ const buildFile = {
     bundleFiles: true,
     deployMode: 'bundle',
     deployDir: 'public',
+    defaultSrcDirName: 'code',
     packages: {
         testModuleWithResources: {
             srcDir: 'src',

@@ -160,7 +160,7 @@ const doBuild = async function (buildFile) {
     let start = new Date(),
         buildStatus = {statusText: 'OK'};
     let {
-        srcDir = defaultSrcDirName,
+        srcDir = buildFile.defaultSrcDirName || defaultSrcDirName,
         packagesDir = defaultPackagesDirName,
         appDir,
         bundleFiles,
@@ -208,7 +208,7 @@ const getBundleString = function (configs = []) {
 const getAppConfig = function (appDir, buildFile) {
     return getFiles(buildArtefactPaths([{
         packageName: 'application',
-        packagePath: a2p([(buildFile.srcDir || defaultSrcDirName), appDir])
+        packagePath: a2p([(buildFile.defaultSrcDirName || buildFile.srcDir || defaultSrcDirName), appDir])
     }]));
 }
 
@@ -218,6 +218,7 @@ const nextBuilder = function (buildFile) {
         log,
         build: function (cleanRun = true) {
             if (cleanRun) {
+                log('CLEAN RUN');
                 emptyFolder();
                 logLine();
             }
