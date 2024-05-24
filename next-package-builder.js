@@ -1,6 +1,5 @@
-const {mkdirSync, writeFileSync} = require('fs'),
-    {log} = require('@srcld/sourlog');
-const {a2p} = require("./utils/file");
+const {log} = require('@srcld/sourlog');
+const {a2p, createPath, doWrite} = require("./src/utils/file");
 
 let baseConfig = {
     extend: 'Ext.panel.Panel'
@@ -24,9 +23,7 @@ const createView = function (viewName, packageName) {
 }
 
 const createPackageFolders = function (path) {
-    mkdirSync(path, {
-        recursive: true
-    })
+    createPath(path, true);
     log('PACKAGE STRUCTURE created');
 }
 
@@ -43,7 +40,7 @@ const createPackageStructure = function (packageName, viewName, packageFolder, w
         let componentString = createView(viewName, packageName);
         log(componentString);
         // write views to disk
-        writeFileSync(path + '/' + viewName.trim() + ending.trim(), componentString);
+        doWrite(path + '/' + viewName.trim() + ending.trim(), componentString)
         created = true;
     } catch (e) {
         created = false

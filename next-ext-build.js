@@ -1,4 +1,4 @@
-const {readFileSync, existsSync, unlinkSync, mkdirSync, cpSync} = require('fs'),
+const {readFileSync, existsSync, unlinkSync, cpSync} = require('fs'),
     {
         getDirectories,
         getFileNames,
@@ -10,8 +10,8 @@ const {readFileSync, existsSync, unlinkSync, mkdirSync, cpSync} = require('fs'),
         buildTree,
         a2p,
         emptyFolder
-    } = require('./utils/file'),
-    {sortClasses} = require('./utils/packagebuild'),
+    } = require('./src/utils/file'),
+    {sortClasses} = require('./src/utils/packagebuild'),
     helper = require('./next-ext'),
     packageBuilder = require('./next-package-builder'),
     {logLine, log, logTable} = require("@srcld/sourlog");
@@ -142,7 +142,7 @@ const deploy = function () {
     let fileName = 'bundle.js'
 
     if (existsSync(newPath)) log('DEPLOY TARGET PATH EXISTS');
-    else mkdirSync(newPath, {recursive: true});
+    else createPath(newPath, true);
 
     oldPath = a2p([oldPath, fileName]);
     newPath = a2p([newPath, fileName]);
