@@ -1,7 +1,8 @@
-build/
-src/
-public/
 .idea/
 
-test.js
+build/
 folder/
+public/
+code/
+
+test.js
