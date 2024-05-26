@@ -1,6 +1,7 @@
 const {readdirSync, writeFileSync, existsSync, mkdirSync, rmSync} = require('fs');
 const fs = require('fs').promises;
 const {log, logJson} = require("@srcld/sourlog");
+const {buildVars} = require("../env/props");
 
 const getDirectories = source =>
     readdirSync(source, {withFileTypes: true})
@@ -48,7 +49,7 @@ const createDir = function (dir, recursive = false) {
     mkdirSync(dir, {recursive})
 }
 
-const exists = function (path){
+const exists = function (path) {
     return existsSync(path)
 }
 
@@ -70,8 +71,10 @@ const renameFile = function (oldPath, newPath) {
     return fs.rename(oldPath, newPath)
 }
 
-const debugSuffix = 'debug';
-const debugJoinBefore = '-';
+const {
+    debugSuffix,
+    debugJoinBefore
+} = buildVars()
 
 const a2p = function (array = []) {
     return array.join('/');
@@ -85,7 +88,6 @@ module.exports = {
     createPath,
     emptyFolder,
     a2p,
-    buildDefaultProperties: {debugSuffix, debugJoinBefore},
     emptyOrCreateFolder,
     renameFile, createDir, doWrite, exists
 }

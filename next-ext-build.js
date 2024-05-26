@@ -4,7 +4,6 @@ const {readFileSync, unlinkSync, cpSync} = require('fs'),
         getFileNames,
         writeToDisk,
         createPath,
-        buildDefaultProperties,
         renameFile,
         emptyOrCreateFolder,
         buildTree,
@@ -15,8 +14,17 @@ const {readFileSync, unlinkSync, cpSync} = require('fs'),
     helper = require('./next-ext'),
     packageBuilder = require('./next-package-builder'),
     {logLine, log, logTable} = require("@srcld/sourlog");
+const {buildVars} = require("./src/env/props");
 
-const {debugSuffix, debugJoinBefore} = buildDefaultProperties;
+const {
+    debugSuffix,
+    debugJoinBefore,
+    buildArtefactType,
+    buildDir,
+    defaultSrcDirName,
+    defaultPackagesDirName
+} = buildVars()
+
 
 const fetchPackageDirs = (sourceDir, packagesDir, packages = {}) => {
     // allow with and without srcDir - ext legacy uses /packages/local/packagename to store individuell js
@@ -150,10 +158,6 @@ const deploy = function () {
     return renameFile(oldPath, newPath);
 }
 
-const buildArtefactType = 'js',
-    buildDir = 'build',
-    defaultSrcDirName = 'src',
-    defaultPackagesDirName = 'packages';
 
 const doBuild = async function (buildFile) {
     log('BUILD START')
