@@ -4,7 +4,8 @@
   "description": "Modern build toolkit for ExtJS.",
   "main": "next-ext-build.js",
   "scripts": {
-    "test": "node test.js"
+    "test": "node test.js",
+    "release" : "npm version patch && npm publish && npm version prepatch"
   },
   "publishConfig": {
     "registry": "https://npm.pkg.github.com/"
