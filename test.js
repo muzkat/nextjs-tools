@@ -18,6 +18,8 @@ const buildFile = {
 // builderInstance
 const b = builder(buildFile);
 
+// console.log(b.getPackageVersion());
+
 b.build()
     .then((obj) => {
         // let {success} = obj;

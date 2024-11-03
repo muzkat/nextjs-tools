@@ -216,6 +216,11 @@ const getAppConfig = function (appDir, buildFile) {
     }]));
 }
 
+const getPackageVersion = function () {
+    let json = require('./package.json');
+    return (json || {}).version;
+}
+
 const nextBuilder = function (buildFile) {
     return {
         buildFile,
@@ -232,7 +237,8 @@ const nextBuilder = function (buildFile) {
         getAppConfig,
         deploy,
         createPackage: packageBuilder.createPackage,
-        createWarPackage: packageBuilder.createWarPackage
+        createWarPackage: packageBuilder.createWarPackage,
+        getPackageVersion: getPackageVersion
     };
 }
 
