@@ -1,11 +1,11 @@
 {
   "name": "@muzkat/nextjs-tools",
-  "version": "0.1.11-0",
+  "version": "0.1.11",
   "description": "Modern build toolkit for ExtJS.",
   "main": "next-ext-build.js",
   "scripts": {
     "test": "node test.js",
-    "release" : "npm version patch && npm publish && npm version prepatch"
+    "release": "npm version patch && npm publish && npm version prepatch"
   },
   "publishConfig": {
     "registry": "https://npm.pkg.github.com/"
