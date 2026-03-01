@@ -21,6 +21,6 @@
   },
   "homepage": "https://github.com/muzkat/nextjs-tools#readme",
   "dependencies": {
-    "@srcld/sourlog": "^0.0.4"
+    "@srcld/sourlog": "^0.0.5"
   }
 }
